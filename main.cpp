@@ -1,84 +1,33 @@
 #include <iostream>
-#include <portaudio.h>
-#include <fftw3.h>
-#include <math.h>
+#include <curl/curl.h>
+#include <string>
 
-#define SAMPLE_RATE (44100)
-#define FRAMES_PER_BUFFER (1024)
-#define NUM_SECONDS (3)
-#define NUM_SAMPLES (SAMPLE_RATE * NUM_SECONDS)
+using namespace std;
 
-int main() {
-    PaError err;
-    PaStream *stream;
-    fftw_complex *in, *out;
-    fftw_plan p;
-    double *data;
-    int num_fft_samples = NUM_SAMPLES / 2 + 1;
+size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+    data->append((char*)ptr, size * nmemb);
+    return size * nmemb;
+}
 
-    // Initialize PortAudio
-    err = Pa_Initialize();
-    if (err != paNoError) {
-        std::cout << "Failed to initialize PortAudio: " << Pa_GetErrorText(err) << std::endl;
-        return 1;
+int main(int argc, char** argv) {
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    auto curl = curl_easy_init();
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, "https://www.example.com");
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+        curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
+        curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+
+        std::string response_string;
+        std::string header_string;
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+        curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
+
+        curl_easy_perform(curl);
+        cout << response_string;
+        curl_easy_cleanup(curl);
+        curl_global_cleanup();
+        curl = NULL;
     }
-
-    // Allocate memory for the input and output buffers
-    in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NUM_SAMPLES);
-    out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * num_fft_samples);
-    data = (double*) malloc(sizeof(double) * NUM_SAMPLES);
-
-    // Create a plan for the FFT
-    p = fftw_plan_dft_r2c_1d(NUM_SAMPLES, data, out, FFTW_ESTIMATE);
-
-    // Open the default input stream
-    err = Pa_OpenDefaultStream(&stream, 1, 0, paFloat32, SAMPLE_RATE, FRAMES_PER_BUFFER, NULL, NULL);
-    if (err != paNoError) {
-        std::cout << "Failed to open PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
-        return 1;
-    }
-
-    // Start the stream
-    err = Pa_StartStream(stream);
-    if (err != paNoError) {
-        std::cout << "Failed to start PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
-        return 1;
-    }
-
-    // Capture audio data for 3 seconds
-    for (int i = 0; i < NUM_SAMPLES; i += FRAMES_PER_BUFFER) {
-        err = Pa_ReadStream(stream, data + i, FRAMES_PER_BUFFER);
-        if (err != paNoError) {
-            std::cout << "Failed to read PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
-            return 1;
-        }
-    }
-
-    // Stop the stream
-    err = Pa_StopStream(stream);
-    if (err != paNoError) {
-        std::cout << "Failed to stop PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
-        return 1;
-    }
-
-    // Execute the FFT
-    fftw_execute(p);
-
-    // Print the magnitude spectrum
-    for (int i = 0; i < num_fft_samples; i++) {
-        double real = out[i][0];
-        double imag = out[i][1];
-        double magnitude = sqrt(real*real + imag*imag);
-        std::cout << i * (SAMPLE_RATE / 2) / num_fft_samples << " Hz: " << magnitude << std::endl;
-    }
-
-    // Clean up
-    fftw_destroy_plan(p);
-    fftw_free(in);
-    fftw_free(out);
-    free(data);
-    Pa_CloseStream(stream);
-    Pa_Terminate();
-
-    return 0;
 }
