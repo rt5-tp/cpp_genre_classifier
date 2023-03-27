@@ -3,8 +3,10 @@
 #include <curl/curl.h>
 #include <string>
 #include <vector>
+#include "json.hpp"
 
 using namespace std;
+using json = nlohmann::json;
 
 
 
@@ -23,8 +25,8 @@ class GenrePredictor{
         curl_global_init(CURL_GLOBAL_DEFAULT);
     }
 
-    vector<float> predict(char*buffer, int buffer_size){
-        vector<float> predictions {0,0,0,0,0,0,0,0,0,0};
+    vector<pair<string, float>> predict(char*buffer, int buffer_size){
+        vector<pair<string, float>> predictions;
         auto curl = curl_easy_init();
 
         if (!curl) {
@@ -54,7 +56,12 @@ class GenrePredictor{
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
 
         curl_easy_perform(curl);
-        cout << "Prediction response: \n\n" << response_string;
+
+        auto response_json = json::parse(response_string);
+
+        for (auto& element : response_json) {
+            predictions.push_back(make_pair(element["genre"], element["certainty"]));
+        }
 
         curl_easy_cleanup(curl);
         curl_global_cleanup();
@@ -89,5 +96,10 @@ int main(int argc, char** argv) {
     if (result != buffer_size) {fputs ("Reading error",stderr); exit (3);}
 
     GenrePredictor predictor;
-    predictor.predict(buffer, buffer_size);
+    auto predictions = predictor.predict(buffer, buffer_size);
+
+    for(auto& prediction : predictions)
+    {
+        cout<<"("<<prediction.first<<","<<prediction.second<<")"<<endl;
+    }
 }
