@@ -2,11 +2,18 @@
 
 ## Dependencies
 
-- [FFTW3](https://www.fftw.org/)
-- [PortAudio](http://www.portaudio.com/)
+- [libcurl](https://curl.se/libcurl/)
+- local genre predictor server (link to be added...)
 
 ## Building
 
-To build, we specify the compiler, filenames and library names.
+To build, run following commands
 
-> g++ -o main main.cpp -lportaudio -lfftw3
+> cmake .
+> make
+
+## Running
+
+To run, run following command
+
+> ./GenreClassifier
