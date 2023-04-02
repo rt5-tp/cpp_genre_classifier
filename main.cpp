@@ -10,7 +10,7 @@ using namespace std;
 
 int main(int argc, char** argv) {
 
-    auto pFile = fopen ( "country.wav" , "rb" );
+    auto pFile = fopen ( "country-1p5sec.wav" , "rb" );
     if (pFile==NULL) {fputs ("File error",stderr); exit (1);}
 
     // obtain file size:
@@ -26,6 +26,8 @@ int main(int argc, char** argv) {
     auto result = fread (buffer,1,buffer_size,pFile);
     if (result != buffer_size) {fputs ("Reading error",stderr); exit (3);}
 
+    std::cout << buffer_size << std::endl;
+
     GenrePredictor predictor;
     auto predictions = predictor.predict(buffer, buffer_size);
 
@@ -33,4 +35,6 @@ int main(int argc, char** argv) {
     {
         cout<<"("<<prediction.first<<","<<prediction.second<<")"<<endl;
     }
+
+    free(buffer);
 }

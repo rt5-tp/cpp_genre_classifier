@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.18.4)
 
 project(GenreClassifier)
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fsanitize=address -fno-omit-frame-pointer")
 set(SOURCES main.cpp)
+
 
 add_executable(GenreClassifier ${SOURCES})
 
