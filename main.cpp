@@ -26,11 +26,10 @@ int main(int argc, char** argv) {
     auto result = fread (buffer,1,buffer_size,pFile);
     if (result != buffer_size) {fputs ("Reading error",stderr); exit (3);}
 
-    std::cout << buffer_size << std::endl;
-
     GenrePredictor predictor;
     auto predictions = predictor.predict(buffer, buffer_size);
 
+    std::cout << "\nPredictions:\n";
     for(auto& prediction : predictions)
     {
         cout<<"("<<prediction.first<<","<<prediction.second<<")"<<endl;
