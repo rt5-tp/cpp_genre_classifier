@@ -45,6 +45,7 @@ class GenrePredictor{
         curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
         std::string response_string;
+        
         std::string header_string;
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
@@ -52,13 +53,17 @@ class GenrePredictor{
 
         curl_easy_perform(curl);
         curl_mime_free(mime);
+        curl_easy_cleanup(curl);
+
+        if(response_string.length() <3){
+            return predictions;
+        }
 
         auto response_json = json::parse(response_string);
 
         for (auto& element : response_json) {
             predictions.push_back(make_pair(element["genre"], element["certainty"]));
         }
-        curl_easy_cleanup(curl);
 
         return predictions;
     }
