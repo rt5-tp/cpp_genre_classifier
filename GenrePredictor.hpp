@@ -4,9 +4,23 @@
 using namespace std;
 using json = nlohmann::json;
 
+/**
+ * @brief Classifies music into one of 10 genres using a web API call
+ *
+ * Makes 
+ * 
+ * This function reads the available audio data into a PingPongBuffer.
+ * Optionally, it renders a visualisation of the audio data.
+ */
 class GenrePredictor{
 
     private:
+
+    /**
+     * @brief Callback function for handling HTTP response data
+     *
+     * Simply copies response data into output data location, without any middleware. 
+     */
     static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
         data->append((char*)ptr, size * nmemb);
         return size * nmemb;
@@ -14,11 +28,26 @@ class GenrePredictor{
 
     public:
 
+    /**
+     * @brief Constructor of class, which initialises curl for requests
+     *
+     */
     GenrePredictor(){
         curl_global_init(CURL_GLOBAL_DEFAULT);
-        
     }
 
+    /**
+     * @brief Takes buffer of WAV audio and returns genre classifications certainties
+     * 
+     * Returns vector of pairs of (genre, certainty), where genre is a string and certainty
+     * is a float.
+     * 
+     * Genres returned are:
+     * blues, classical, country, disco, hiphop, jazz, metal, pop, reggae, rock 
+     * 
+     * For decent predictions, audio should be >1 second in length.
+     * 
+    */
     vector<pair<string, float>> predict(char*buffer, int buffer_size){
         vector<pair<string, float>> predictions;
 
@@ -68,6 +97,9 @@ class GenrePredictor{
         return predictions;
     }
 
+    /**
+     * @brief Destructor of class. Cleans up resources used by curl
+     */
     ~GenrePredictor(){
         curl_global_cleanup();
     }
