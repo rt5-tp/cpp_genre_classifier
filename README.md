@@ -1,5 +1,8 @@
 # Genre Classifier CPP
 
+The GenreClassifier is a client for the GenrePredictionServer and allows for the classification of any given music into one of 10 genres, given a .wav audio buffer. 
+Predictions are in the form of pairs, ie. genre (string) -> certainty (float) 
+
 ## Dependencies
 
 - [libcurl](https://curl.se/libcurl/)
@@ -7,13 +10,13 @@
 
 ## Building
 
-To build, run following commands
+To build, enter the src directory and run following commands:
 
-> cmake .
+> cmake . <br>
 > make
 
 ## Running
 
-To run, run following command
+To run, run following command:
 
 > ./GenreClassifier
